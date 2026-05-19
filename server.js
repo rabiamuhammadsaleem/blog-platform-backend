@@ -108,7 +108,12 @@ app.post('/api/auth/signup', async (req, res) => {
         const user = await User.create({ name, email, password: hashedPassword });
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secret123');
         
-        res.cookie('token', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+        res.cookie('token', token, {
+            httpOnly: true,
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            sameSite: 'none',
+            secure: process.env.NODE_ENV === 'production'
+        });
         res.status(201).json({ 
             success: true, 
             user: { id: user._id, name: user.name, email: user.email } 
@@ -133,7 +138,12 @@ app.post('/api/auth/login', async (req, res) => {
         }
         
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secret123');
-        res.cookie('token', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+        res.cookie('token', token, {
+            httpOnly: true,
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            sameSite: 'none',
+            secure: process.env.NODE_ENV === 'production'
+        });
         
         res.json({ 
             success: true, 
@@ -145,7 +155,12 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 app.get('/api/auth/logout', (req, res) => {
-    res.cookie('token', '', { maxAge: 0 });
+    res.cookie('token', 'none', {
+        expires: new Date(Date.now() + 10 * 1000),
+        httpOnly: true,
+        sameSite: 'none',
+        secure: process.env.NODE_ENV === 'production'
+    });
     res.json({ success: true, message: 'Logged out successfully' });
 });
 

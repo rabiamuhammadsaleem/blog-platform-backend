@@ -22,7 +22,8 @@ const signup = async (req, res) => {
         res.cookie('token', token, {
             expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
             httpOnly: true,
-            sameSite: 'lax'
+            sameSite: 'none',
+            secure: process.env.NODE_ENV === 'production'
         });
 
         res.status(201).json({
@@ -53,7 +54,8 @@ const login = async (req, res) => {
         res.cookie('token', token, {
             expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
             httpOnly: true,
-            sameSite: 'lax'
+            sameSite: 'none',
+            secure: process.env.NODE_ENV === 'production'
         });
 
         res.status(200).json({
@@ -68,7 +70,9 @@ const login = async (req, res) => {
 const logout = async (req, res) => {
     res.cookie('token', 'none', {
         expires: new Date(Date.now() + 10 * 1000),
-        httpOnly: true
+        httpOnly: true,
+        sameSite: 'none',
+        secure: process.env.NODE_ENV === 'production'
     });
     res.status(200).json({ success: true, message: 'Logged out successfully' });
 };
