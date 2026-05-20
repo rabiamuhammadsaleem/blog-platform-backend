@@ -15,13 +15,38 @@ dotenv.config();
 const app = express();
 
 // Middleware
-// app.use(cors({ origin: ['http://localhost:3000', 'https://blog-platform-backend-production-2df3.up.railway.app'], credentials: true }));
-app.use(cors({ 
-    origin: ['http://localhost:3000', 'https://blog-platform-frontend-delta.vercel.app'],
+// CORS setup
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://blog-platform-frontend-delta.vercel.app'
+];
+
+app.use(cors({
+    origin: function(origin, callback) {
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            console.log('Blocked origin:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With']
 }));
+
+// Handle preflight requests
+// app.options('*', cors());
+
+
+// app.use(cors({ origin: ['http://localhost:3000', 'https://blog-platform-backend-production-2df3.up.railway.app'], credentials: true }));
+// app.use(cors({ 
+//     origin: ['http://localhost:3000', 'https://blog-platform-frontend-delta.vercel.app'],
+//     credentials: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+//     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
+// }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
