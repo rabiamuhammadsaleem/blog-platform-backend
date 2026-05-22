@@ -8,11 +8,32 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const crypto = require('crypto');  
+const crypto = require('crypto');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');   
 
 dotenv.config();
 
 const app = express();
+
+// ============ CLOUDINARY CONFIGURATION ============
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dykgq9o2a',
+    api_key: process.env.CLOUDINARY_API_KEY || '531171636223179',
+    api_secret: process.env.CLOUDINARY_API_SECRET || 'your_api_secret_here'
+});
+
+// Cloudinary Storage
+const cloudinaryStorage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'blog-platform',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'mov', 'avi', 'mkv'],
+        resource_type: 'auto'
+    }
+});
+
+const upload = multer({ storage: cloudinaryStorage });
 
 // Middleware
 app.use(express.json());
