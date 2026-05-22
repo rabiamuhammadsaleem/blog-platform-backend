@@ -49,25 +49,25 @@ app.use(cors({
 
 console.log('✅ Middleware configured with CORS credentials: true');
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ============ MULTER SETUP ============
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
+// // ============ MULTER SETUP ============
+// const uploadDir = path.join(__dirname, 'uploads');
+// if (!fs.existsSync(uploadDir)) {
+//     fs.mkdirSync(uploadDir, { recursive: true });
+// }
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, uploadDir),
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname));
-    }
-});
+// const storage = multer.diskStorage({
+//     destination: (req, file, cb) => cb(null, uploadDir),
+//     filename: (req, file, cb) => {
+//         cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname));
+//     }
+// });
 
-const upload = multer({ 
-    storage: storage,
-    limits: { fileSize: 50 * 1024 * 1024 }
-});
+// const upload = multer({ 
+//     storage: storage,
+//     limits: { fileSize: 50 * 1024 * 1024 }
+// });
 
 // ============ MODELS ============
 const userSchema = new mongoose.Schema({
@@ -272,11 +272,11 @@ app.post('/api/blogs/create', protect, upload.any(), async (req, res) => {
         if (req.files && req.files.length > 0) {
             for (const file of req.files) {
                 if (file.fieldname === 'image') {
-                    imagePath = `/uploads/${file.filename}`;
+                    imagePath = file.path;
                 }
-                if (file.fieldname === 'video') {
-                    videoPath = `/uploads/${file.filename}`;
-                }
+                //  if (file.fieldname === 'video') {
+                //     videoPath = file.path;  // ✅ NEW - Cloudinary URL
+                // }
             }
         }
         
@@ -284,7 +284,6 @@ app.post('/api/blogs/create', protect, upload.any(), async (req, res) => {
             title,
             description,
             image: imagePath,
-            video: videoPath,
             videoLink: videoLink,
             author: req.user._id,
             authorName: req.user.name
@@ -374,15 +373,15 @@ app.put('/api/blogs/:id', protect, upload.any(), async (req, res) => {
                         const oldPath = path.join(__dirname, blog.image);
                         if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
                     }
-                    blog.image = `/uploads/${file.filename}`;
+                    blog.image = file.path;
                 }
-                if (file.fieldname === 'video') {
-                    if (blog.video) {
-                        const oldPath = path.join(__dirname, blog.video);
-                        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-                    }
-                    blog.video = `/uploads/${file.filename}`;
-                }
+                // if (file.fieldname === 'video') {
+                //     if (blog.video) {
+                //         const oldPath = path.join(__dirname, blog.video);
+                //         if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+                //     }
+                //     blog.video = file.path;
+                // }
             }
         }
         
@@ -403,14 +402,14 @@ app.delete('/api/blogs/:id', protect, async (req, res) => {
             return res.status(403).json({ success: false, message: 'Not authorized' });
         }
         
-        if (blog.image) {
-            const imagePath = path.join(__dirname, blog.image);
-            if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
-        }
-        if (blog.video) {
-            const videoPath = path.join(__dirname, blog.video);
-            if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath);
-        }
+        // if (blog.image) {
+        //     const imagePath = path.join(__dirname, blog.image);
+        //     if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
+        // }
+        // if (blog.video) {
+        //     const videoPath = path.join(__dirname, blog.video);
+        //     if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath);
+        // }
         
         await blog.deleteOne();
         res.json({ success: true, message: 'Blog deleted' });
@@ -435,7 +434,7 @@ app.put('/api/users/profile', protect, upload.single('profilePicture'), async (r
                 const oldPath = path.join(__dirname, req.user.profilePicture);
                 if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
             }
-            req.user.profilePicture = `/uploads/${req.file.filename}`;
+            req.user.profilePicture = req.file.path;
         }
         
         await req.user.save();
