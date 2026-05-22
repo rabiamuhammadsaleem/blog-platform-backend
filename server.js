@@ -15,45 +15,19 @@ dotenv.config();
 const app = express();
 
 // Middleware
-// CORS setup
-const allowedOrigins = [
-    'http://localhost:3000',
-    'https://blog-platform-frontend-delta.vercel.app'
-];
-
-app.use(cors({
-    origin: function(origin, callback) {
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            console.log('Blocked origin:', origin);
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
-}));
-
-// Handle preflight requests
-app.options('*', cors({
-    origin: function(origin, callback) {
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
-}));
-
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(cors({
+    origin: ['http://localhost:3000', 'https://blog-platform-frontend-delta.vercel.app'],
+    credentials: true, 
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+                // Allow cookies
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+console.log('✅ Middleware configured with CORS credentials: true');
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ============ MULTER SETUP ============
